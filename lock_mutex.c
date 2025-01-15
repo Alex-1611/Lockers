@@ -169,7 +169,7 @@ void wait(semaphore *sem){
         sleep(0.1);
 }
 
-void signal(semaphore *sem){
+void signal_sem(semaphore *sem){
     pid_t tid = gettid();
     delete_tid(sem->thr_queue, tid);
     if(nth_in_queue(sem))
@@ -183,4 +183,8 @@ void sem_destroy(semaphore *sem){
     }
     free(sem->thr_queue);
     free(sem);
+}
+
+int main(){
+    return 0;
 }

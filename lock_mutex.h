@@ -1,9 +1,14 @@
 #include <unistd.h>
+#include <stdlib.h>
 #include <pthread.h>
 #include <stdbool.h>
 #include <stdatomic.h>
 #include <signal.h>
+#include <sys/syscall.h>
 
+pid_t gettid(void) {
+    return syscall(SYS_gettid);
+}
 
 typedef struct thr_node{
     pid_t tid;
@@ -37,6 +42,11 @@ typedef struct semaphore{
     int value;
     thr_queue *thr_queue;
 }semaphore;
+
+semaphore *sem_init(int value);
+void wait(semaphore *sem);
+void signal_sem(semaphore *sem);
+void sem_destroy(semaphore *sem);
 
 pid_t nth_in_queue(semaphore *sem);
 bool in_first_n_queue(semaphore *sem, pid_t tid);
