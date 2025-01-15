@@ -12,6 +12,7 @@ pid_t gettid(void) {
 
 typedef struct thr_node{
     pid_t tid;
+    pthread_t thread;
     struct thr_node *next;
 }thr_node;
 
@@ -22,7 +23,7 @@ typedef struct thr_queue{
 
 thr_queue *thr_init_queue();
 bool is_empty(thr_queue *queue);
-void enqueue(thr_queue *queue, pid_t tid);
+void enqueue(thr_queue *queue, pid_t tid, pthread_t thread);
 pid_t dequeue(thr_queue *queue);
 bool in_queue(thr_queue *queue, pid_t tid);
 void delete_tid(thr_queue *queue, pid_t tid);
@@ -48,6 +49,6 @@ void wait(semaphore *sem);
 void signal_sem(semaphore *sem);
 void sem_destroy(semaphore *sem);
 
-pid_t nth_in_queue(semaphore *sem);
+pthread_t nth_in_queue(semaphore *sem);
 bool in_first_n_queue(semaphore *sem, pid_t tid);
 

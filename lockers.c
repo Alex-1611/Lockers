@@ -1,4 +1,10 @@
-#include "lock_mutex.h"
+#include "lockers.h"
+#include <stdio.h>
+
+void handle_sigcont(int sig){
+    if(sig == SIGCONT)
+        printf("Received SIGCONT signal\n");
+}
 
 thr_queue* thr_init_queue(){
     thr_queue *queue = (thr_queue*)malloc(sizeof(thr_queue));
@@ -13,12 +19,13 @@ bool is_empty(thr_queue *queue){
     return false;
 }
 
-void enqueue(thr_queue *queue, pid_t tid){
+void enqueue(thr_queue *queue, pid_t tid, pthread_t thread){
     if(!is_empty(queue))
     {   
         thr_node *node = (thr_node*)malloc(sizeof(thr_node));
         node->next = NULL;
         node->tid = tid;
+        node->thread = thread;
         queue->rear->next = node;
         queue->rear = node;
     }
@@ -27,6 +34,7 @@ void enqueue(thr_queue *queue, pid_t tid){
         thr_node *node = (thr_node*)malloc(sizeof(thr_node));
         node->next = NULL;
         node->tid = tid;
+        node->thread = thread;
         queue->front = node;
         queue->rear = node;
     }
@@ -105,7 +113,7 @@ bool in_first_n_queue(semaphore *sem, pid_t tid){
     }
 }   
 
-pid_t nth_in_queue(semaphore *sem){
+pthread_t nth_in_queue(semaphore *sem){
     if(is_empty(sem->thr_queue))
         return 0;
     else
@@ -118,7 +126,7 @@ pid_t nth_in_queue(semaphore *sem){
             i++;
         }
         if(node != NULL && i == sem->value)
-            return node->tid;
+            return node->thread;
         else
             return 0;
     }
@@ -140,18 +148,22 @@ void mtx_destroy(mtx_lock *mtx){
 }
 
 void acquire(mtx_lock *mtx){
+    signal (SIGINT, handle_sigcont);
     pid_t tid = gettid();
     if(!in_queue(mtx->thr_queue, tid))
-        enqueue(mtx->thr_queue, tid);
+        enqueue(mtx->thr_queue, tid, pthread_self());
     while(mtx->thr_queue->front->tid != tid)
-        pause();
+       sleep(0.1);
 }
 
 void release(mtx_lock *mtx){
     pid_t tid = gettid();
     if(!is_empty(mtx->thr_queue) && mtx->thr_queue->front->tid == tid)
         dequeue(mtx->thr_queue);
-    pthread_kill(mtx->thr_queue->front->tid, SIGCONT);
+    if(!is_empty(mtx->thr_queue)){
+        pthread_t thread = mtx->thr_queue->front->thread;
+        pthread_kill(thread, SIGCONT);
+    }
 }
 
 semaphore *sem_init(int value){
@@ -164,7 +176,7 @@ semaphore *sem_init(int value){
 void wait(semaphore *sem){
     pid_t tid = gettid();
     if(!in_queue(sem->thr_queue, tid))
-        enqueue(sem->thr_queue, tid);
+        enqueue(sem->thr_queue, tid, pthread_self());
     while(!in_first_n_queue(sem, tid))
         sleep(0.1);
 }
@@ -183,8 +195,4 @@ void sem_destroy(semaphore *sem){
     }
     free(sem->thr_queue);
     free(sem);
-}
-
-int main(){
-    return 0;
 }
