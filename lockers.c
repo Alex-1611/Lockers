@@ -140,7 +140,7 @@ mtx_lock *mtx_init(){
 
 void mtx_destroy(mtx_lock *mtx){
     while((!is_empty(mtx->thr_queue))){
-        pthread_kill((mtx->thr_queue->front->tid), SIGKILL);
+        pthread_kill((mtx->thr_queue->front->thread), SIGKILL);
         dequeue(mtx->thr_queue);
     }
     free(mtx->thr_queue);
@@ -190,7 +190,7 @@ void signal_sem(semaphore *sem){
 
 void sem_destroy(semaphore *sem){
     while((!is_empty(sem->thr_queue))){
-        pthread_kill((sem->thr_queue->front->tid), SIGKILL);
+        pthread_kill((sem->thr_queue->front->thread), SIGKILL);
         dequeue(sem->thr_queue);
     }
     free(sem->thr_queue);
