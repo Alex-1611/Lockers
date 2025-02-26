@@ -1,4 +1,3 @@
-
 #include "lockers.c"
 #include <stdio.h>
 #include <pthread.h>

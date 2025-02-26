@@ -1,3 +1,6 @@
+#ifndef LOCKERS_H
+#define LOCKERS_H
+
 #include <unistd.h>
 #include <stdlib.h>
 #include <pthread.h>
@@ -52,3 +55,4 @@ void sem_destroy(semaphore *sem);
 pthread_t nth_in_queue(semaphore *sem);
 bool in_first_n_queue(semaphore *sem, pid_t tid);
 
+#endif // LOCKERS_H
